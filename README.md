@@ -2,13 +2,13 @@
 
 A tool for repairing Minecraft resource pack files.
 
-It can currently repair the following file corruption types:
+Currently, it can repair the following types of file corruption:
 
 - ZIP files with incorrect Local File Headers
 - ZIP files with incorrect CRC-32 checksums
 - ZIP files with incorrect uncompressed lengths
 
-File corruption types not yet supported but planned:
+The following types of file corruption are not yet supported, but are planned for support:
 
 - PNG files with incorrect CRC-32 checksums
 - PNG files with incorrect Adler-32 checksums in IDAT chunk
