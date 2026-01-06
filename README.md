@@ -19,6 +19,6 @@ File corruption types not yet supported but planned:
 >
 > Furthermore, if your file is truly corrupted in its data portion, this tool can only restore it to a well-formed file at best, not recover the corrupted data.
 
-> [!IMORTANT]
+> [!IMPORTANT]
 >
 > These corrupted, malformed or non-standard files typically originate from resource packs processed by resource pack protection tools. Do not use the extracted files for purposes other than study and research without the copyright holder's permission.
