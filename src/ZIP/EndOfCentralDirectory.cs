@@ -1,7 +1,7 @@
 ﻿using System.Buffers.Binary;
 using System.Runtime.InteropServices;
 
-namespace ResourcePackRepairer;
+namespace ResourcePackRepairer.ZIP;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct EndOfCentralDirectory : IDataStruct
@@ -42,7 +42,7 @@ public struct EndOfCentralDirectory : IDataStruct
         while (stream.ReadBackwardsUntilFind4ByteSeq(Signature))
         {
             long pos = stream.Position;
-            if (IDataStruct.ReadFromStream(stream, out header)
+            if (IDataStruct.TryReadFromStream(stream, out header)
                 && stream.Position + header.CommentLength <= stream.Length)
                 return true;
             stream.Position = pos - 1;

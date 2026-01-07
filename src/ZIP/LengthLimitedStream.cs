@@ -1,4 +1,4 @@
-namespace ResourcePackRepairer;
+namespace ResourcePackRepairer.ZIP;
 
 public class LengthLimitedStream(Stream stream, long length, bool leaveOpen = true) : Stream
 {

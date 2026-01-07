@@ -1,7 +1,7 @@
 ﻿using System.Buffers.Binary;
 using System.Runtime.InteropServices;
 
-namespace ResourcePackRepairer;
+namespace ResourcePackRepairer.ZIP;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct CentralDirectoryHeader : IDataStruct

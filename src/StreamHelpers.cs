@@ -1,8 +1,6 @@
 ﻿using System.Buffers;
 using System.Buffers.Binary;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace ResourcePackRepairer;
 
@@ -82,7 +80,7 @@ internal static class StreamHelpers
     }
     public static byte[] ReadBytes(this Stream stream, int length)
     {
-        byte[] bytes = new byte[length];
+        byte[] bytes = GC.AllocateUninitializedArray<byte>(length);
         stream.ReadExactly(bytes);
         return bytes;
     }

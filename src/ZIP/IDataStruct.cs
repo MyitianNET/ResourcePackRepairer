@@ -1,16 +1,16 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ResourcePackRepairer;
+namespace ResourcePackRepairer.ZIP;
 
 public interface IDataStruct
 {
     void ReverseEndianness();
 
-    public static bool ReadFromStream<T>(Stream stream, out T header) where T : struct, IDataStruct
+    public static bool TryReadFromStream<T>(Stream stream, out T header) where T : struct, IDataStruct
     {
         header = default;
         Span<byte> buffer = MemoryMarshal.AsBytes(new Span<T>(ref header));
-        if (stream.ReadAtLeast(buffer, buffer.Length, false) != buffer.Length)
+        if (!stream.TryReadExactly(buffer))
             return false;
         if (!BitConverter.IsLittleEndian)
             header.ReverseEndianness();
