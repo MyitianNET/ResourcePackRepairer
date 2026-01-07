@@ -14,8 +14,8 @@ Currently, it can repair the following types of file corruption:
 
 TODOs:
 
-- ZIP-64 files
-- Parsing of command-line arguments
+- Supporting ZIP-64 files
+- Parsing command-line arguments
 
 > [!NOTE]
 >
