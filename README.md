@@ -4,13 +4,16 @@ A tool for repairing Minecraft resource pack files. It primarily focuses on file
 
 Currently, it can repair the following types of file corruption:
 
-- ZIP files with incorrect Local File Headers
-- ZIP files with incorrect CRC-32 checksums
-- ZIP files with incorrect uncompressed lengths
-- ZIP files with incorrect disk numbers
-- ZIP files with incorrect entry count
-- PNG files with incorrect CRC-32 checksums
-- PNG files with incorrect Adler-32 checksums in IDAT chunk
+- ZIP file:
+  - incorrect Local File Header
+  - incorrect CRC-32 checksum
+  - incorrect compressed size
+  - incorrect uncompressed size
+  - incorrect disk number
+  - incorrect entry count
+- PNG file:
+  - incorrect CRC-32 checksum
+  - incorrect Adler-32 checksum in IDAT chunk
 
 > [!IMPORTANT]
 >
