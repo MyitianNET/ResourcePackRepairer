@@ -12,10 +12,6 @@ Currently, it can repair the following types of file corruption:
 - PNG files with incorrect CRC-32 checksums
 - PNG files with incorrect Adler-32 checksums in IDAT chunk
 
-TODOs:
-
-- Parsing command-line arguments
-
 > [!IMPORTANT]
 >
 > These corrupted, malformed or non-standard files typically originate from resource packs processed by obfuscation/protection tools. Do not use the extracted files for purposes other than study and research without the copyright holder's permission.
@@ -28,4 +24,4 @@ TODOs:
 
 > [!NOTE]
 >
-> The ZIP-64 support is not fully tested. When you find a bug, please attach the file that triggered the bug to the issue.
+> The ZIP-64 implementation is not fully tested. When you find a bug, please attach the file that triggered the bug to the issue.

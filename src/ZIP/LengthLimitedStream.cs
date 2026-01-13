@@ -30,6 +30,7 @@ public sealed class LengthLimitedStream(Stream stream, ulong length, bool leaveO
     }
     public override int Read(byte[] buffer, int offset, int count)
     {
+        ValidateBufferArguments(buffer, offset, count);
         ulong c = Math.Min((ulong)count, _remaining);
         int result = BaseStream.Read(buffer, offset, (int)c);
         _remaining -= c;
@@ -44,6 +45,7 @@ public sealed class LengthLimitedStream(Stream stream, ulong length, bool leaveO
     }
     public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
+        ValidateBufferArguments(buffer, offset, count);
         ulong c = Math.Min((ulong)count, _remaining);
         Task<int> result = BaseStream.ReadAsync(buffer, offset, (int)c, cancellationToken);
         _remaining -= c;
