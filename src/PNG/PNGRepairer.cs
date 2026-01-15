@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 
 namespace ResourcePackRepairer.PNG;
 
@@ -37,13 +36,38 @@ public static class PNGRepairer
         // Chunk-by-chunk copy
         while (PNGChunk.TryReadFromStream(source, out PNGChunk chunk))
         {
-            if (options.ReCalculateIDATAdler32 && !doneIDAT && chunk.Name == IDAT)
+            try
             {
+                if (!options.ReCalculateIDATAdler32)
+                    goto NEXT;
+                if (doneIDAT)
+                {
+                    if (chunk.Name == IDAT)
+                        goto SKIP; // no extra IDATs
+                    else
+                        goto NEXT;
+                }
+                if (chunk.Name != IDAT)
+                {
+                    if (adler32remaining != 0)
+                    {
+                        // the previous IDAT is not long enough to put the Adler-32 in
+                        PNGChunk idat = PNGChunk.RentFromArrayPool(adler32remaining);
+                        idat.Name = IDAT;
+                        adler32value[^adler32remaining..].CopyTo(idat.Data);
+                        doneIDAT = true;
+                        adler32remaining = 0;
+                        idat.ReCalculateCRC32();
+                        idat.WriteToStream(destination);
+                        idat.Dispose();
+                    }
+                    goto NEXT;
+                }
                 int available = chunk.Length;
                 int offset = 0;
                 if (adler32remaining == 0)
                 {
-                    if (inflater == null)
+                    if (inflater is null)
                     {
                         inflater = InflaterAccessor.CreateInflater();
                         available -= 2;
@@ -65,12 +89,18 @@ public static class PNGRepairer
                 }
                 if (adler32remaining != 0)
                 {
-                    Span<byte> target = chunk.UnderlyingArray.AsSpan(offset);
+                    Span<byte> target = chunk.Data[offset..];
                     if (available >= adler32remaining)
                     {
+                        int remaining = available - adler32remaining;
+                        if (remaining > 0)
+                        {
+                            // the chunk is too long!
+                            chunk.Length -= remaining;
+                        }
                         adler32value[^adler32remaining..].CopyTo(target);
-                        doneIDAT = true;
                         adler32remaining = 0;
+                        doneIDAT = true;
                     }
                     else
                     {
@@ -79,39 +109,35 @@ public static class PNGRepairer
                         adler32remaining -= available;
                     }
                 }
-            }
-            if (options.ReCalculateCRC32)
+            NEXT:
                 chunk.ReCalculateCRC32();
-            chunk.WriteToStream(destination);
-            if (chunk.Name == IEND)
-                break;
+                chunk.WriteToStream(destination);
+            SKIP:
+                if (chunk.Name == IEND)
+                    break;
+            }
+            finally
+            {
+                chunk.Dispose();
+            }
         }
     }
 
     internal static void InflaterToAdler32(IDisposable inflater, Adler32 adler32)
     {
         const int BufferSize = 8192;
-
-        byte[] array = ArrayPool<byte>.Shared.Rent(BufferSize);
-        try
+        using PooledArrayHandle<byte> array = new(BufferSize);
+        while (true)
         {
-            while (true)
-            {
-                int read = InflaterAccessor.Inflate(inflater, array);
-                if (read <= 0)
-                    break;
-                adler32.Append(array.AsSpan(0, read));
-            }
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(array);
+            int read = InflaterAccessor.Inflate(inflater, array.Array);
+            if (read <= 0)
+                break;
+            adler32.Append(array.Array.AsSpan(0, read));
         }
     }
 
     public struct Options()
     {
-        public bool ReCalculateCRC32 = true;
         public bool ReCalculateIDATAdler32 = true;
     }
 }

@@ -23,7 +23,7 @@ Currently, it can repair the following types of file corruption:
 >
 > This tool assumes checksums and many other metadata are unreliable and will attempt to recalculate the checksums from the data.
 >
-> Furthermore, if your file is truly corrupted in its data portion, this tool can only restore it to a well-formed file at best, not recover the corrupted data.
+> Furthermore, if your file is truly corrupted in its data portion, this tool will fail to decode or can only restore it to a well-formed file at best, not recover the corrupted data.
 
 > [!NOTE]
 >

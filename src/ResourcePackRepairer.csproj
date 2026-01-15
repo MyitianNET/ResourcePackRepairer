@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Myitian.SimpleArgs" Version="1.0.0" />
+    <PackageReference Include="Myitian.SimpleArgs" Version="*" />
     <PackageReference Include="System.IO.Hashing" Version="*" />
   </ItemGroup>
 

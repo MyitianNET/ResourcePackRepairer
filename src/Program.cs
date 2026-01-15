@@ -45,7 +45,7 @@ static class Program
         }
         if (!argx.TryGetString("--mode", out string? modeStr))
         {
-            Console.Out.Write("Mode[zip/png]:");
+            Console.Out.Write("Mode[zip/png]: ");
             modeStr = Console.In.ReadLine()?.Trim();
             Console.Out.WriteLine();
         }
@@ -56,13 +56,13 @@ static class Program
         }
         if (!argx.TryGetString("--input", out string? inputFile))
         {
-            Console.Out.Write("Input file path:");
+            Console.Out.Write("Input file path: ");
             inputFile = Console.In.ReadLine().AsSpan().Trim().Trim('"').ToString();
             Console.Out.WriteLine();
         }
         if (!argx.TryGetString("--output", out string? outputFile))
         {
-            Console.Out.Write("Output file path:");
+            Console.Out.Write("Output file path: ");
             outputFile = Console.In.ReadLine().AsSpan().Trim().Trim('"').ToString();
             Console.Out.WriteLine();
         }

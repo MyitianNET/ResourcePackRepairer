@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.Runtime.InteropServices;
 
 namespace ResourcePackRepairer;
@@ -63,17 +62,11 @@ static class StreamHelpers
     // [*][*][0][1][2]...[N][*][*]
     public static bool StartsWith(this Stream stream, ReadOnlySpan<byte> bytes)
     {
-        byte[] array = ArrayPool<byte>.Shared.Rent(bytes.Length);
-        try
-        {
-            Span<byte> buffer = array.AsSpan(0, bytes.Length);
-            return stream.ReadAtLeast(buffer, buffer.Length, false) == buffer.Length
-                && buffer.SequenceEqual(bytes);
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(array);
-        }
+        const int BufferSize = 8192;
+        using PooledArrayHandle<byte> array = new(BufferSize);
+        Span<byte> buffer = array.Array.AsSpan(0, bytes.Length);
+        return stream.ReadAtLeast(buffer, buffer.Length, false) == buffer.Length
+            && buffer.SequenceEqual(bytes);
     }
 
     public static bool TryReadExactly(this Stream stream, Span<byte> buffer)
@@ -90,27 +83,20 @@ static class StreamHelpers
     {
         if (length == 0)
             return;
-        byte[] array = ArrayPool<byte>.Shared.Rent((int)Math.Min(length, 65536));
-        ulong arrayLength = (ulong)array.Length;
-        try
+        PooledArrayHandle<byte> array = new((int)Math.Min(length, 65536));
+        ulong arrayLength = (ulong)array.Array.Length;
+        while (length > arrayLength)
         {
-            while (length > arrayLength)
-            {
-                int read = stream.Read(array, 0, array.Length);
-                if (read == 0)
-                    throw new EndOfStreamException();
-                destination.Write(array, 0, read);
-                length -= (ulong)read;
-            }
-            int iLength = (int)length;
-            int finalBlock = stream.Read(array, 0, iLength);
-            destination.Write(array, 0, finalBlock);
-            if (finalBlock < iLength)
+            int read = stream.Read(array.Array, 0, array.Array.Length);
+            if (read == 0)
                 throw new EndOfStreamException();
+            destination.Write(array.Array, 0, read);
+            length -= (ulong)read;
         }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(array);
-        }
+        int iLength = (int)length;
+        int finalBlock = stream.Read(array.Array, 0, iLength);
+        destination.Write(array.Array, 0, finalBlock);
+        if (finalBlock < iLength)
+            throw new EndOfStreamException();
     }
 }

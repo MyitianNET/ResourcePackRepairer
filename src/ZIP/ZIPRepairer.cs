@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.IO.Hashing;
 using System.Text;
 
@@ -83,8 +82,8 @@ public static class ZIPRepairer
             if (fcdh.CDH.ApplyNewValue(fcdh.ExtraFields, uncompressedSize, compressedSize, localHeaderOffset, 0))
             {
                 zip64required = true;
-                fcdh.CDH.VersionMadeBy = Math.Min(fcdh.CDH.VersionMadeBy, Zip64VersionNeeded);
-                fcdh.CDH.VersionNeeded = Math.Min(fcdh.CDH.VersionNeeded, Zip64VersionNeeded);
+                fcdh.CDH.VersionMadeBy = Math.Max(fcdh.CDH.VersionMadeBy, Zip64VersionNeeded);
+                fcdh.CDH.VersionNeeded = Math.Max(fcdh.CDH.VersionNeeded, Zip64VersionNeeded);
             }
             cdhList.Add(fcdh);
 
@@ -93,7 +92,7 @@ public static class ZIPRepairer
             if (lfh.ApplyNewValue(lfhExtraFields, uncompressedSize, compressedSize))
             {
                 zip64required = true;
-                lfh.VersionNeeded = Math.Min(lfh.VersionNeeded, Zip64VersionNeeded);
+                lfh.VersionNeeded = Math.Max(lfh.VersionNeeded, Zip64VersionNeeded);
             }
             if (!lfhExtraFields.TryGetLengthInBytes(out lfh.ExtraFieldLength))
                 throw new InvalidDataException($"Overlong ExtraField for {Encoding.UTF8.GetString(fcdh.FileName)}!");
@@ -212,42 +211,28 @@ public static class ZIPRepairer
         Crc32 crc = new();
         compressedSize = 0;
         uncompressedSize = 0;
-        byte[] compressedBuffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-        try
+        PooledArrayHandle<byte> compressedBuffer = new(BufferSize);
+        PooledArrayHandle<byte> uncompressedBuffer = new(BufferSize);
+        while (true)
         {
-            byte[] uncompressedBuffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-            try
+            int read = InflaterAccessor.Inflate(inflater, uncompressedBuffer.Array);
+            if (read > 0)
             {
-                while (true)
-                {
-                    int read = InflaterAccessor.Inflate(inflater, uncompressedBuffer);
-                    if (read > 0)
-                    {
-                        uncompressedSize += (uint)read;
-                        crc.Append(uncompressedBuffer.AsSpan(0, read));
-                    }
-                    else if (InflaterAccessor.Finished(inflater))
-                    {
-                        compressedSize -= InflaterAccessor.GetAvailableIn(inflater);
-                        crc32 = crc.GetCurrentHashAsUInt32();
-                        return;
-                    }
-                    else if (InflaterAccessor.GetAvailableIn(inflater) == 0)
-                    {
-                        read = stream.Read(compressedBuffer, 0, compressedBuffer.Length);
-                        compressedSize += (uint)read;
-                        InflaterAccessor.SetInput(inflater, compressedBuffer.AsMemory(0, read));
-                    }
-                }
+                uncompressedSize += (uint)read;
+                crc.Append(uncompressedBuffer.Array.AsSpan(0, read));
             }
-            finally
+            else if (InflaterAccessor.Finished(inflater))
             {
-                ArrayPool<byte>.Shared.Return(uncompressedBuffer);
+                compressedSize -= InflaterAccessor.GetAvailableIn(inflater);
+                crc32 = crc.GetCurrentHashAsUInt32();
+                return;
             }
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(compressedBuffer);
+            else if (InflaterAccessor.GetAvailableIn(inflater) == 0)
+            {
+                read = stream.Read(compressedBuffer.Array, 0, compressedBuffer.Array.Length);
+                compressedSize += (uint)read;
+                InflaterAccessor.SetInput(inflater, compressedBuffer.Array.AsMemory(0, read));
+            }
         }
     }
     private static bool ApplyNewValue(this ref LocalFileHeader self, ExtraFieldCollection extraFields, ulong uncompressedSize, ulong compressedSize)
