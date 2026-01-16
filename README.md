@@ -27,7 +27,7 @@ Currently, it can repair the following types of file corruption:
 
 > [!NOTE]
 >
-> The ZIP-64 implementation is not fully tested. When you find a bug, please attach the file that triggered the bug to the issue.
+> The ZIP-64 implementation is not fully tested. If you find an error and have the distribution rights to the corresponding file, please attach the file that caused the error to the issue.
 
 ## Usage
 
