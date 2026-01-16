@@ -28,3 +28,33 @@ Currently, it can repair the following types of file corruption:
 > [!NOTE]
 >
 > The ZIP-64 implementation is not fully tested. When you find a bug, please attach the file that triggered the bug to the issue.
+
+## Usage
+
+Command-line mode:
+
+```
+> ./ResourcePackRepairer.exe --help
+Usage:
+    ResourcePackRepairer [arguments...]
+
+Arguments:
+Name               | ParamCount | Alias  | Default | Info
+--help             .          0 . -h, -? .         .
+--mode             .          1 . -m     .         . Mode, accepted={zip|png}.
+--input            .          1 . -i     .         . Input file path.
+--output           .          1 . -o     .         . Output file path.
+--in-memory-input  .          1 . -imi   . false   . Read entire input file into memory before processing.
+--in-memory-output .          1 . -imo   . false   . Write output file after processing is complete.
+> ./ResourcePackRepairer.exe -m <select mode here> -i <input file here> -o <output file here>
+```
+
+Interactive mode (when any of mode, input or output are not provided in command line arguments):
+
+```
+Mode[zip/png]: <select mode here>
+
+Input file path: <input file here>
+
+Output file path: <output file here>
+```
