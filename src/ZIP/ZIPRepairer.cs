@@ -52,7 +52,7 @@ public static class ZIPRepairer
         {
             // Read CDH from source
             long pos = source.Position;
-            if (!source.StartsWith(CentralDirectoryHeader.Signature))
+            if (!source.ReadForwardsUntilFind4ByteSeq(CentralDirectoryHeader.Signature))
                 throw new InvalidDataException($"Cannot find CDH signature at {pos}!");
             FullCentralDirectoryHeader fcdh = FullCentralDirectoryHeader.ReadFromStream(source);
             fcdh.ExtraFields.ReadZip64ExtraField(
@@ -66,12 +66,12 @@ public static class ZIPRepairer
             // Read LFH from source
             pos = source.Position;
             source.Position = (long)localHeaderOffset;
-            if (!source.StartsWith(LocalFileHeader.Signature))
+            if (!source.ReadForwardsUntilFind4ByteSeq(LocalFileHeader.Signature))
                 throw new InvalidDataException($"Cannot find LFH signature at {localHeaderOffset}!");
             LocalFileHeader lfh = IDataStruct.ReadExactlyFromStream<LocalFileHeader>(source);
             source.Seek(lfh.FileNameLength, SeekOrigin.Current);
             lfhExtraFields.ReadFromBytes(source.ReadBytes(lfh.ExtraFieldLength));
-            long payloadStart = source.Position + lfh.FileNameLength + lfh.ExtraFieldLength;
+            long payloadStart = source.Position;
 
             // Try decompress to get correct CRC32 and size
             source.Position = payloadStart;
@@ -191,7 +191,8 @@ public static class ZIPRepairer
                 }
                 break;
             case 8 when options.ReCalculateCRC32 || options.ReCalculateCompressedSize || options.ReCalculateUncompressedSize:
-                using (LengthLimitedStream lls = new(source, compressedSize))
+                long pos = source.Position;
+                try
                 {
                     AnalyzeDeflateStream(source, out uint crc32, out ulong compressedSizeLocal, out ulong uncompressedSizeLocal);
                     if (options.ReCalculateCRC32)
@@ -200,6 +201,13 @@ public static class ZIPRepairer
                         compressedSize = compressedSizeLocal;
                     if (options.ReCalculateUncompressedSize)
                         uncompressedSize = uncompressedSizeLocal;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine($"OFFS: {pos}");
+                    Console.WriteLine($"US: {uncompressedSize}");
+                    Console.WriteLine($"CS: {compressedSize}");
                 }
                 break;
         }

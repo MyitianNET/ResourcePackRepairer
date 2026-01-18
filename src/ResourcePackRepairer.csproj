@@ -7,6 +7,11 @@
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>1.1</Version>
+    <Authors>Myitian</Authors>
+    <RepositoryUrl>https://github.com/Myitian/ResourcePackRepairer</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Myitian/ResourcePackRepairer</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
